@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Akuntansi Warmindo (Cloud Firebase)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* === COLOR VARIABLES (CLEAN UI THEME) === */
+        :root {
+            --primary: #4f46e5;         
+            --primary-hover: #4338ca;
+            --bg-body: #f8fafc;         
+            --bg-surface: #ffffff;      
+            --text-main: #0f172a;       
+            --text-muted: #64748b;      
+            --border-color: #e2e8f0;    
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body { font-family: var(--font-family); margin: 0; background-color: var(--bg-body); color: var(--text-main); -webkit-font-smoothing: antialiased; }
+        
+        /* === STYLE HALAMAN LOGIN === */
+        #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: var(--bg-body); }
+        .login-box { background: var(--bg-surface); padding: 40px; border-radius: var(--radius-md); box-shadow: var(--shadow-card); width: 100%; max-width: 340px; border: 1px solid var(--border-color); text-align: center; }
+        .login-box h2 { color: var(--text-main); margin-top: 0; margin-bottom: 24px; font-size: 24px; font-weight: 600;}
+        .login-box input { margin-bottom: 16px; background-color: var(--bg-body); }
+        .login-box button { width: 100%; padding: 12px; font-size: 15px; font-weight: 500; margin-top: 8px; }
+        
+        /* === APLIKASI UTAMA === */
+        #app-wrapper { display: none; width: 100%; min-height: 100vh; }
+        
+        /* Sidebar Clean */
+        .sidebar { width: 260px; background-color: var(--bg-surface); color: var(--text-main); height: 100vh; position: fixed; padding-top: 24px; z-index: 100; border-right: 1px solid var(--border-color); overflow-y: auto;}
+        .sidebar h3 { text-align: center; margin-bottom: 32px; color: var(--primary); font-size: 20px; font-weight: 700; letter-spacing: -0.5px;}
+        .sidebar a { display: block; color: var(--text-muted); padding: 12px 20px; margin: 4px 16px; text-decoration: none; border-radius: var(--radius-sm); font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 14px;}
+        .sidebar a:hover { background-color: var(--bg-body); color: var(--text-main); }
+        .sidebar a.active { background-color: #eef2ff; color: var(--primary); font-weight: 600; }
+        .sidebar .logout-btn { color: var(--danger); margin-top: 24px; border-top: 1px solid var(--border-color); border-radius: 0; padding-top: 20px;}
+        .sidebar .logout-btn:hover { background-color: transparent; color: #b91c1c; }
+        
+        .main-content { margin-left: 260px; padding: 32px 40px; width: calc(100% - 260px); box-sizing: border-box; }
+        .section-view { display: none; animation: fadeIn 0.4s ease-out; }
+        .section-view.active { display: block; }
+        
+        /* Typography & Layout */
+        h2 { color: var(--text-main); margin-top: 0; font-size: 22px; font-weight: 600; margin-bottom: 24px; }
+        h3 { color: var(--text-main); margin-top: 0; font-size: 16px; font-weight: 600; margin-bottom: 16px;}
+        label { font-weight: 500; font-size: 13px; color: var(--text-muted); display: block; margin-top: 12px; margin-bottom: 6px; }
+        
+        /* Cards */
+        .card { background-color: var(--bg-surface); padding: 24px 32px; margin-bottom: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+        
+        /* Inputs & Buttons */
+        input[type="text"], input[type="number"], input[type="date"], input[type="password"], select, textarea { width: 100%; padding: 10px 14px; margin: 0 0 16px 0; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-sizing: border-box; font-family: var(--font-family); font-size: 14px; color: var(--text-main); transition: 0.2s; background: var(--bg-surface); outline: none;}
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
+        .search-bar { width: 100%; max-width: 320px; margin-bottom: 0; padding-left: 36px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>'); background-repeat: no-repeat; background-position: 12px center; }
+        
+        button { background-color: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s; display: inline-flex; justify-content: center; align-items: center;}
+        button:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        button.btn-danger { background-color: var(--danger); }
+        button.btn-danger:hover:not(:disabled) { background-color: #dc2626; }
+        button.btn-warning { background-color: var(--warning); color: #fff; }
+        button.btn-warning:hover:not(:disabled) { background-color: #d97706; }
+        button.btn-info { background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); }
+        button.btn-info:hover:not(:disabled) { background-color: var(--border-color); }
+        
+        /* Minimalist Tables */
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: transparent; color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color);}
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f8fafc; }
+        
+        /* Layout Structure */
+        .flex-container { display: flex; gap: 24px; flex-wrap: wrap; }
+        .flex-child { flex: 1; min-width: 250px; }
+        
+        /* Modern Badges */
+        .badge { padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; display: inline-block;}
+        .badge-masuk { background-color: #d1fae5; color: #065f46; }
+        .badge-keluar { background-color: #fee2e2; color: #991b1b; }
+        .badge-opname { background-color: #e0e7ff; color: #3730a3; }
+        
+        /* Clean Dashboard Stats */
+        .stat-box { flex: 1; background: var(--bg-surface); padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+        .stat-box h3 { color: var(--text-muted); margin: 0 0 8px 0; font-size: 14px; font-weight: 500; }
+        .stat-box h1 { margin: 0; font-size: 32px; font-weight: 700; color: var(--text-main); }
+        .border-blue { border-left: 4px solid var(--primary); }
+        .border-red { border-left: 4px solid var(--danger); }
+        .border-green { border-left: 4px solid var(--success); }
+
+        /* Loader Overlay */
+        #loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 1000; justify-content: center; align-items: center; font-weight: bold; color: var(--primary); font-size: 18px; }
+
+        @media (max-width: 768px) {
+            #app-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; display: flex; flex-wrap: nowrap; overflow-x: auto; padding: 12px 0; border-right: none; border-bottom: 1px solid var(--border-color);}
+            .sidebar h3 { display: none; } 
+            .sidebar a { padding: 8px 16px; margin: 0 4px; font-size: 13px; white-space: nowrap; border-radius: 20px; background: var(--bg-body);}
+            .sidebar a.active { background-color: var(--primary); color: white; }
+            .sidebar .logout-btn { margin-top: 0; border-top: none; padding-top: 8px; color: var(--danger); }
+            .main-content { margin-left: 0; width: 100%; padding: 20px; }
+            .card { padding: 20px; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="loader">🔄 Sinkronisasi dengan Database Server...</div>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="color: var(--primary);">Warmindo App Cloud</h2>
+            <p style="color: var(--text-muted); font-size: 14px; margin-top: -15px; margin-bottom: 25px;">Sistem Akuntansi Terpusat</p>
+            <input type="text" id="loginUsername" placeholder="Username">
+            <input type="password" id="loginPassword" placeholder="Password" onkeypress="if(event.key === 'Enter') window.prosesLogin()">
+            <button onclick="window.prosesLogin()">Masuk Sistem</button>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 24px;">
+                Akses demo: <b>admin</b> / <b>user</b>
+            </p>
+        </div>
+    </div>
+
+    <div id="app-wrapper">
+        <div class="sidebar">
+            <h3 id="app-title">☁️ Warmindo</h3>
+            <a href="javascript:void(0)" onclick="window.showSection('dashboard')" id="nav-dashboard" class="active">Dashboard</a>
+            <a href="javascript:void(0)" onclick="window.showSection('master-bahan')" id="nav-master-bahan">Data Master</a>
+            <a href="javascript:void(0)" onclick="window.showSection('pembelian')" id="nav-pembelian">Barang Masuk</a>
+            <a href="javascript:void(0)" onclick="window.showSection('pemakaian')" id="nav-pemakaian">Barang Keluar</a>
+            <a href="javascript:void(0)" onclick="window.showSection('stok-opname')" id="nav-stok-opname">Stok Opname</a>
+            <a href="javascript:void(0)" onclick="window.showSection('laporan')" id="nav-laporan">Laporan & Export</a>
+            <a href="javascript:void(0)" onclick="window.showSection('riwayat')" id="nav-riwayat">Riwayat Data</a>
+            
+            <a href="javascript:void(0)" onclick="window.prosesLogout()" class="logout-btn">Log Out</a>
+        </div>
+
+        <div class="main-content">
+
+            <div id="dashboard" class="section-view active">
+                <h2>Ringkasan Sistem (Cloud)</h2>
+                <div class="flex-container">
+                    <div class="stat-box border-blue">
+                        <h3>Total Varian Bahan Baku</h3>
+                        <h1 id="dashTotalItem">0</h1>
+                    </div>
+                    <div class="stat-box border-red">
+                        <h3>Peringatan Stok Kritis</h3>
+                        <h1 id="dashStokKritis">0</h1>
+                    </div>
+                    <div class="stat-box border-green">
+                        <h3>Total Transaksi Tercatat</h3>
+                        <h1 id="dashTotalTransaksi">0</h1>
+                    </div>
+                </div>
+                <div class="card" style="margin-top: 24px; background-color: #eef2ff; border: none;">
+                    <h3 style="color: var(--primary);">Halo, <span id="display-user" style="text-transform:capitalize;"></span>! 👋</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 0;">Aplikasi sekarang telah terhubung ke server <b>Google Firebase</b>. Seluruh data Anda tersimpan dengan aman secara <i>real-time</i> di internet.</p>
+                </div>
+            </div>
+
+            <div id="master-bahan" class="section-view">
+                <h2>Kelola Data Master Bahan</h2>
+                <div class="flex-container">
+                    <div class="card flex-child">
+                        <h3>Tambah/Edit Master Data</h3>
+                        <label>Kode Bahan Baku:</label>
+                        <input type="text" id="inputKode" placeholder="Contoh: BBK-001">
+                        
+                        <label>Nama Bahan Baku:</label>
+                        <input type="text" id="inputNama" placeholder="Contoh: Tepung Terigu">
+                        
+                        <div class="flex-container" style="gap: 15px;">
+                            <div class="flex-child">
+                                <label>Satuan:</label>
+                                <select id="inputSatuan">
+                                    <option value="Kg">Kg</option><option value="Pcs">Pcs</option><option value="Ikat">Ikat</option>
+                                    <option value="Liter">Liter</option><option value="Dus">Dus</option><option value="Bungkus">Bungkus</option>
+                                </select>
+                            </div>
+                            <div class="flex-child">
+                                <label>Kategori:</label>
+                                <select id="inputKategori">
+                                    <option value="Bahan Kering">Bahan Kering</option><option value="Bahan Segar">Bahan Segar</option>
+                                    <option value="Bumbu">Bumbu</option><option value="Minuman">Minuman</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <label>Stok Awal (Opsional):</label>
+                        <input type="number" id="inputStok" value="0">
+                        <label>Deskripsi Keterangan:</label>
+                        <textarea id="inputDeskripsi" rows="2" placeholder="Catatan opsional..."></textarea>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button onclick="window.simpanBahanBaku()" style="flex: 2;">💾 Simpan ke Cloud</button>
+                            <button class="btn-info" onclick="window.resetFormMaster()" style="flex: 1;">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="card flex-child" style="flex: 1.5;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0;">Daftar Bahan Baku</h3>
+                            <button class="btn-info" style="padding: 6px 12px; font-size: 12px;" onclick="window.loadDataFromFirebase()">🔄 Refresh</button>
+                        </div>
+                        <input type="text" class="search-bar" id="searchMaster" placeholder="Cari data..." onkeyup="window.cariData('searchMaster', 'tabelMasterBahan')">
+                        
+                        <div style="overflow-x: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Kode</th><th>Nama</th><th>Kategori</th><th>Satuan</th><th>Stok</th><th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelMasterBahan"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pembelian" class="section-view">
+                <h2>Pencatatan Barang Masuk</h2>
+                <div class="card">
+                    <div class="flex-container">
+                        <div class="flex-child">
+                            <label>Tanggal Transaksi:</label>
+                            <input type="date" id="tglPembelian">
+                            <label>Pilih Bahan Baku:</label>
+                            <select id="selectBahanPembelian"></select>
+                            <label>Jumlah (Qty) Masuk:</label>
+                            <input type="number" id="jumlahPembelian" placeholder="0">
+                        </div>
+                        <div class="flex-child">
+                            <label>No. Nota / Bukti (Bila ada):</label>
+                            <input type="text" id="notaPembelian" placeholder="Contoh: INV-001">
+                            <label>Supplier / Vendor:</label>
+                            <input type="text" id="supplierPembelian" placeholder="Contoh: Pasar Induk / Agen">
+                            <label>Total Harga Beli (Rp):</label>
+                            <input type="number" id="hargaPembelian" placeholder="0">
+                        </div>
+                    </div>
+                    <button onclick="window.simpanPembelian()" style="width: 100%; margin-top: 10px;">💾 Simpan Barang Masuk</button>
+                </div>
+            </div>
+
+            <div id="pemakaian" class="section-view">
+                <h2>Pencatatan Barang Keluar</h2>
+                <div class="card">
+                    <div class="flex-container">
+                        <div class="flex-child">
+                            <label>Tanggal Pemakaian:</label>
+                            <input type="date" id="tglPemakaian">
+                            <label>Tujuan Pemakaian:</label>
+                            <select id="unitPemakaian">
+                                <option value="Dapur Utama">Dapur Utama (Dimasak)</option>
+                                <option value="Stand Depan">Stand Minuman</option>
+                                <option value="Buang/Rusak">Dibuang / Basi / Rusak</option>
+                            </select>
+                        </div>
+                        <div class="flex-child">
+                            <label>Pilih Bahan Baku:</label>
+                            <select id="selectBahanPemakaian"></select>
+                            <label>Jumlah (Qty) Keluar:</label>
+                            <input type="number" id="jumlahPemakaian" placeholder="0">
+                        </div>
+                    </div>
+                    <button class="btn-warning" style="width:100%; margin-top: 10px;" onclick="window.simpanPemakaian()">💾 Catat Pengurangan Stok</button>
+                </div>
+            </div>
+
+            <div id="stok-opname" class="section-view">
+                <h2>Stok Opname Sistem vs Fisik</h2>
+                <div class="card">
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Ketik jumlah stok fisik aktual yang ada di rak/gudang pada kolom <b>Stok Fisik</b> lalu klik sesuaikan. Sistem akan mencatat selisihnya otomatis.</p>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kode</th><th>Nama Bahan Baku</th><th>Stok Sistem</th><th style="width: 120px;">Stok Fisik</th><th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelOpname"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="laporan" class="section-view">
+                <h2>Laporan Stok & Export</h2>
+                <div class="card">
+                    <div style="margin-bottom: 24px; display: flex; gap: 12px;">
+                        <button class="btn-info" onclick="window.print()">🖨️ Cetak PDF</button>
+                        <button onclick="window.exportCSV()" style="background-color: var(--success);">📊 Export ke Excel (CSV)</button>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kode</th><th>Kategori</th><th>Nama Bahan</th><th>Satuan</th><th>Saldo Stok Akhir</th><th>Status Sistem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelLaporanStok"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="riwayat" class="section-view">
+                <h2>Log Riwayat Transaksi</h2>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <input type="text" class="search-bar" id="searchRiwayat" placeholder="Cari log transaksi..." onkeyup="window.cariData('searchRiwayat', 'tabelRiwayat')">
+                        <button class="btn-info" style="color: var(--danger); border-color: var(--danger);" onclick="window.hapusRiwayat()">🗑️ Kosongkan Log Riwayat</button>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu Transaksi</th><th>Jenis Log</th><th>Detail Bahan</th><th>Kuantitas</th><th>Keterangan / Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelRiwayat"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div> <script type="module">
+        // 1. Import Firebase Core & Firestore
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+        // 2. Konfigurasi Firebase Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyBa5pkSEZpUMH7iAwJKAnQq6tEJ2JIx5jE",
+            authDomain: "kelompok-6-kelas-c.firebaseapp.com",
+            projectId: "kelompok-6-kelas-c",
+            storageBucket: "kelompok-6-kelas-c.firebasestorage.app",
+            messagingSenderId: "571529004743",
+            appId: "1:571529004743:web:51b1ccfa7308b639b960e2",
+            measurementId: "G-26H87GSZMX"
+        };
+
+        // 3. Inisialisasi Firebase & Firestore Database
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Referensi Global (Local State)
+        window.dbBahanBaku = [];
+        window.dbRiwayat = [];
+
+        // Utilities
+        window.showLoader = (show) => { document.getElementById('loader').style.display = show ? 'flex' : 'none'; };
+        window.formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tglPembelian').value = today;
+            document.getElementById('tglPemakaian').value = today;
+        } catch(e) {}
+
+        // ==========================================
+        // FUNGSI FIREBASE ASYNCHRONOUS (DATABASE)
+        // ==========================================
+        
+        // --- MENGAMBIL DATA DARI SERVER (READ) ---
+        window.loadDataFromFirebase = async function() {
+            window.showLoader(true);
+            try {
+                // Ambil koleksi "bahan_baku"
+                const bahanSnap = await getDocs(collection(db, "bahan_baku"));
+                window.dbBahanBaku = bahanSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // Ambil koleksi "riwayat", urutkan berdasarkan timestamp terbaru
+                const qRiwayat = query(collection(db, "riwayat"), orderBy("timestamp", "desc"));
+                const riwayatSnap = await getDocs(qRiwayat);
+                window.dbRiwayat = riwayatSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                window.renderData();
+            } catch (error) {
+                console.error("Gagal terhubung ke Firestore:", error);
+                alert("Gagal memuat data. Pastikan koneksi internet Anda stabil dan aturan keamanan (Rules) Firestore telah disetel dengan benar.");
+            }
+            window.showLoader(false);
+        }
+
+        // --- MENAMBAH MASTER DATA (CREATE) ---
+        window.simpanBahanBaku = async function() {
+            const kode = document.getElementById('inputKode').value.trim();
+            const nama = document.getElementById('inputNama').value.trim();
+            const satuan = document.getElementById('inputSatuan').value;
+            const kategori = document.getElementById('inputKategori').value;
+            const deskripsi = document.getElementById('inputDeskripsi').value.trim();
+            const stok = parseInt(document.getElementById('inputStok').value) || 0;
+
+            if(!kode || !nama) return alert("Kode dan Nama Bahan harus diisi!");
+            if(window.dbBahanBaku.find(item => item.kode === kode)) return alert("Kode bahan baku sudah digunakan!");
+
+            window.showLoader(true);
+            try {
+                // Simpan ke Cloud Firestore
+                await addDoc(collection(db, "bahan_baku"), { kode, nama, satuan, kategori, deskripsi, stok });
+                
+                if(stok > 0) {
+                    await window.catatRiwayatToCloud('Masuk', kode, nama, stok, 0, 'Sistem: Saldo Awal Master');
+                }
+
+                alert("Data berhasil tersimpan di Cloud Firebase!");
+                window.resetFormMaster();
+                await window.loadDataFromFirebase(); // Refresh Data
+            } catch (error) {
+                console.error(error);
+                alert("Terjadi kesalahan saat menyimpan data ke server.");
+            }
+            window.showLoader(false);
+        }
+
+        // --- MENGHAPUS MASTER DATA (DELETE) ---
+        window.hapusBahan = async function(docId) {
+            if(confirm("Hapus data master ini permanen dari Database Cloud?")) {
+                window.showLoader(true);
+                try {
+                    await deleteDoc(doc(db, "bahan_baku", docId));
+                    await window.loadDataFromFirebase();
+                } catch (error) {
+                    console.error(error);
+                    alert("Gagal menghapus data.");
+                }
+                window.showLoader(false);
+            }
+        }
+
+        // --- MENYIMPAN TRANSAKSI (UPDATE & CREATE LOG) ---
+        window.simpanPembelian = async function() {
+            const docId = document.getElementById('selectBahanPembelian').value; // Mengambil Document ID dari Select Option
+            const tgl = document.getElementById('tglPembelian').value;
+            const supplier = document.getElementById('supplierPembelian').value || 'Internal';
+            const nota = document.getElementById('notaPembelian').value || '-';
+            const qty = parseInt(document.getElementById('jumlahPembelian').value);
+            const harga = parseInt(document.getElementById('hargaPembelian').value) || 0;
+            
+            if(!docId || isNaN(qty) || qty <= 0) return alert("Validasi: Pilih bahan dan Qty wajib > 0!");
+
+            window.showLoader(true);
+            try {
+                const bahan = window.dbBahanBaku.find(b => b.id === docId);
+                const currentStok = bahan.stok || 0;
+                
+                // Update Stok di Firestore
+                await updateDoc(doc(db, "bahan_baku", docId), { stok: currentStok + qty });
+                
+                // Catat ke Log Firestore
+                const ket = `Nota: ${nota} | Suppl: ${supplier}`;
+                await window.catatRiwayatToCloud('Masuk', bahan.kode, bahan.nama, qty, harga, ket);
+                
+                document.getElementById('jumlahPembelian').value = '';
+                document.getElementById('hargaPembelian').value = '';
+                await window.loadDataFromFirebase();
+                alert("Transaksi Pembelian tersimpan di server!");
+            } catch(e) { console.error(e); alert("Gagal memproses transaksi."); }
+            window.showLoader(false);
+        }
+
+        window.simpanPemakaian = async function() {
+            const docId = document.getElementById('selectBahanPemakaian').value;
+            const tgl = document.getElementById('tglPemakaian').value;
+            const unit = document.getElementById('unitPemakaian').value;
+            const qty = parseInt(document.getElementById('jumlahPemakaian').value);
+            
+            if(!docId || isNaN(qty) || qty <= 0) return alert("Validasi: Pilih bahan dan Qty wajib > 0!");
+
+            window.showLoader(true);
+            try {
+                const bahan = window.dbBahanBaku.find(b => b.id === docId);
+                const currentStok = bahan.stok || 0;
+                if(currentStok < qty) {
+                    window.showLoader(false);
+                    return alert(`Saldo kurang! Sisa di server: ${currentStok}`);
+                }
+                
+                await updateDoc(doc(db, "bahan_baku", docId), { stok: currentStok - qty });
+                await window.catatRiwayatToCloud('Keluar', bahan.kode, bahan.nama, qty, 0, `Tujuan: ${unit}`);
+                
+                document.getElementById('jumlahPemakaian').value = '';
+                await window.loadDataFromFirebase();
+            } catch(e) { console.error(e); alert("Gagal memproses transaksi."); }
+            window.showLoader(false);
+        }
+
+        window.sesuaikanOpname = async function(docId) {
+            const inputElement = document.getElementById(`opname-${docId}`);
+            if(!inputElement) return;
+            
+            const qtyFisik = parseInt(inputElement.value);
+            if(isNaN(qtyFisik) || qtyFisik < 0) return alert("Format angka stok fisik tidak valid!");
+
+            const bahan = window.dbBahanBaku.find(b => b.id === docId);
+            if(bahan) {
+                const stokLama = bahan.stok || 0;
+                const selisih = qtyFisik - stokLama;
+                
+                if(selisih === 0) return alert("Telah tersinkronasi. Tidak ada update.");
+
+                window.showLoader(true);
+                try {
+                    await updateDoc(doc(db, "bahan_baku", docId), { stok: qtyFisik });
+                    await window.catatRiwayatToCloud('Opname', bahan.kode, bahan.nama, Math.abs(selisih), 0, `Sistem (${stokLama}) -> Fisik (${qtyFisik})`);
+                    await window.loadDataFromFirebase();
+                    alert("Stok berhasil disesuaikan di server!");
+                } catch(e) { console.error(e); alert("Gagal memproses opname."); }
+                window.showLoader(false);
+            }
+        }
+
+        // --- FUNGSI HELPER RIWAYAT CLOUD ---
+        window.catatRiwayatToCloud = async function(jenis, kode, nama, qty, harga, keterangan) {
+            const waktu = new Date().toLocaleString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+            const timestamp = Date.now(); // Untuk fungsi sorting (orderBy) terbaru
+            await addDoc(collection(db, "riwayat"), { waktu, timestamp, jenis, kode, nama, qty, harga, keterangan });
+        }
+
+        window.hapusRiwayat = async function() {
+            if(confirm("AWAS! Ini akan menghapus SELURUH catatan riwayat dari database server. Lanjutkan?")) {
+                window.showLoader(true);
+                try {
+                    // Loop untuk hapus per-dokumen
+                    for (const log of window.dbRiwayat) {
+                        await deleteDoc(doc(db, "riwayat", log.id));
+                    }
+                    await window.loadDataFromFirebase();
+                } catch(e) { console.error(e); alert("Gagal menghapus log."); }
+                window.showLoader(false);
+            }
+        }
+
+
+        // ==========================================
+        // FUNGSI RENDER & UI
+        // ==========================================
+
+        window.resetFormMaster = function() {
+            document.getElementById('inputKode').value = ''; document.getElementById('inputNama').value = '';
+            document.getElementById('inputStok').value = '0'; document.getElementById('inputDeskripsi').value = '';
+        }
+
+        window.renderData = function() {
+            const tbMaster = document.getElementById('tabelMasterBahan');
+            const tbOpname = document.getElementById('tabelOpname');
+            const tbLaporan = document.getElementById('tabelLaporanStok');
+            const tbRiwayat = document.getElementById('tabelRiwayat');
+            const selBeli = document.getElementById('selectBahanPembelian');
+            const selPakai = document.getElementById('selectBahanPemakaian');
+            
+            if(tbMaster) tbMaster.innerHTML = ''; if(tbOpname) tbOpname.innerHTML = '';
+            if(tbLaporan) tbLaporan.innerHTML = ''; if(tbRiwayat) tbRiwayat.innerHTML = '';
+            if(selBeli) selBeli.innerHTML = '<option value="">-- Pilih Bahan Baku --</option>';
+            if(selPakai) selPakai.innerHTML = '<option value="">-- Pilih Bahan Baku --</option>';
+
+            let krisisCount = 0;
+
+            if(window.dbBahanBaku.length === 0) {
+                const emptyRow = '<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 30px;">Belum ada data di server.</td></tr>';
+                if(tbMaster) tbMaster.innerHTML = emptyRow;
+                if(tbOpname) tbOpname.innerHTML = emptyRow;
+                if(tbLaporan) tbLaporan.innerHTML = emptyRow;
+            } else {
+                window.dbBahanBaku.forEach(item => {
+                    const currentStok = item.stok || 0;
+                    const kategori = item.kategori || '-';
+                    
+                    let statusTxt = "<span style='color: var(--success); font-weight: 500;'>Aman</span>";
+                    let rowColor = "var(--text-main)";
+                    if(currentStok <= 5 && currentStok > 0) { statusTxt = "<span style='color: var(--warning); font-weight: 600;'>Kritis</span>"; rowColor = "var(--warning)"; krisisCount++; }
+                    if(currentStok === 0) { statusTxt = "<span style='color: var(--danger); font-weight: 600;'>Habis</span>"; rowColor = "var(--danger)"; krisisCount++; }
+
+                    // Note: window.hapusBahan & sesuaikanOpname sekarang menggunakan parameter ID dari Firestore (item.id), BUKAN item.kode lagi.
+                    if(tbMaster) {
+                        tbMaster.innerHTML += `
+                            <tr>
+                                <td style="color: var(--text-muted);">${item.kode}</td><td style="font-weight: 500;">${item.nama}</td>
+                                <td>${kategori}</td><td>${item.satuan}</td><td style="color:${rowColor}; font-weight:700;">${currentStok}</td>
+                                <td><button class="btn-info" style="color: var(--danger); border: none; padding: 6px 12px;" onclick="window.hapusBahan('${item.id}')">Hapus</button></td>
+                            </tr>
+                        `;
+                    }
+                    if(tbLaporan) {
+                        tbLaporan.innerHTML += `
+                            <tr>
+                                <td style="color: var(--text-muted);">${item.kode}</td><td>${kategori}</td>
+                                <td style="font-weight: 500;">${item.nama}</td><td>${item.satuan}</td>
+                                <td style="color: ${rowColor}; font-weight: 700;">${currentStok}</td><td>${statusTxt}</td>
+                            </tr>
+                        `;
+                    }
+                    if(tbOpname) {
+                        tbOpname.innerHTML += `
+                            <tr>
+                                <td style="color: var(--text-muted);">${item.kode}</td><td style="font-weight: 500;">${item.nama}</td>
+                                <td><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">${currentStok} ${item.satuan}</span></td>
+                                <td><input type="number" id="opname-${item.id}" value="${currentStok}" style="margin:0; padding:8px;"></td>
+                                <td><button class="btn-info" style="border: 1px solid var(--primary); color: var(--primary);" onclick="window.sesuaikanOpname('${item.id}')">Terapkan</button></td>
+                            </tr>
+                        `;
+                    }
+
+                    // Value dropdown menggunakan ID Firestore
+                    const opt = `<option value="${item.id}">${item.nama} (Sisa: ${currentStok} ${item.satuan})</option>`;
+                    if(selBeli) selBeli.innerHTML += opt;
+                    if(selPakai) selPakai.innerHTML += opt;
+                });
+            }
+
+            if(window.dbRiwayat.length === 0) {
+                if(tbRiwayat) tbRiwayat.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 30px;">Belum ada catatan aktivitas.</td></tr>';
+            } else {
+                window.dbRiwayat.forEach(log => {
+                    let badgeClass = 'badge-masuk';
+                    if(log.jenis === 'Keluar') badgeClass = 'badge-keluar';
+                    if(log.jenis === 'Opname') badgeClass = 'badge-opname';
+                    
+                    const infoTambahan = log.harga > 0 ? `<div style="font-weight:600;">${window.formatRupiah(log.harga)}</div><div style="font-size:12px; color:var(--text-muted);">${log.keterangan}</div>` : `<span style="color:var(--text-muted);">${log.keterangan}</span>`;
+                    
+                    if(tbRiwayat) {
+                        tbRiwayat.innerHTML += `
+                            <tr>
+                                <td style="font-size: 13px; color: var(--text-muted);">${log.waktu}</td>
+                                <td><span class="badge ${badgeClass}">${log.jenis}</span></td>
+                                <td><span style="color: var(--text-muted); font-size: 12px;">[${log.kode}]</span><br><b>${log.nama}</b></td>
+                                <td style="font-weight: 700; font-size: 16px;">${log.qty}</td>
+                                <td>${infoTambahan}</td>
+                            </tr>
+                        `;
+                    }
+                });
+            }
+
+            if(document.getElementById('dashTotalItem')) document.getElementById('dashTotalItem').innerText = window.dbBahanBaku.length;
+            if(document.getElementById('dashStokKritis')) document.getElementById('dashStokKritis').innerText = krisisCount;
+            if(document.getElementById('dashTotalTransaksi')) document.getElementById('dashTotalTransaksi').innerText = window.dbRiwayat.length;
+        }
+
+
+        // ==========================================
+        // FUNGSI UMUM (LOGIN, SEARCH, EXPORT, NAVIGASI)
+        // ==========================================
+
+        window.checkAuth = function() {
+            const user = localStorage.getItem('warmindo_active_user'); // Session login tetap di memori lokal per-perangkat
+            if(user) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-wrapper').style.display = 'flex';
+                document.getElementById('display-user').innerText = user;
+                // Tarik data dari Cloud saat user berhasil login
+                window.loadDataFromFirebase();
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app-wrapper').style.display = 'none';
+            }
+        }
+
+        window.prosesLogin = function() {
+            const user = document.getElementById('loginUsername').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            if((user === 'admin' && pass === 'admin') || (user === 'user' && pass === 'user')) {
+                localStorage.setItem('warmindo_active_user', user);
+                document.getElementById('loginUsername').value = ''; document.getElementById('loginPassword').value = '';
+                window.checkAuth();
+            } else {
+                alert("Kredensial tidak valid! Gunakan 'admin' atau 'user'.");
+            }
+        }
+
+        window.prosesLogout = function() {
+            if(confirm("Keluar dari sesi saat ini?")) {
+                localStorage.removeItem('warmindo_active_user');
+                window.checkAuth();
+            }
+        }
+
+        window.showSection = function(sectionId) {
+            document.querySelectorAll('.section-view').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+            const selectedSection = document.getElementById(sectionId);
+            const selectedNav = document.getElementById('nav-' + sectionId);
+            if(selectedSection) selectedSection.classList.add('active');
+            if(selectedNav) selectedNav.classList.add('active');
+            
+            // Render ulang dari cache lokal JS (tidak perlu fetch ke DB terus terusan pindah menu)
+            window.renderData();
+        }
+
+        window.cariData = function(inputId, tbodyId) {
+            let filter = document.getElementById(inputId).value.toLowerCase();
+            let trs = document.getElementById(tbodyId).getElementsByTagName('tr');
+            for (let i = 0; i < trs.length; i++) {
+                if (trs[i].cells.length === 1) continue; 
+                let textContent = trs[i].innerText.toLowerCase();
+                trs[i].style.display = (textContent.indexOf(filter) > -1) ? "" : "none";
+            }
+        }
+
+        window.exportCSV = function() {
+            if(window.dbBahanBaku.length === 0) return alert("Belum ada data untuk diexport.");
+            let csvContent = "data:text/csv;charset=utf-8,Kode,Nama Bahan,Kategori,Satuan,Sisa Stok\n";
+            window.dbBahanBaku.forEach(row => {
+                const kategoriSafe = row.kategori || '-';
+                csvContent += `${row.kode},${row.nama},${kategoriSafe},${row.satuan},${row.stok}\n`;
+            });
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Laporan_Stok_Cloud_Warmindo.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // INIT SAAT PERTAMA KALI HALAMAN DIBUKA
+        window.onload = function() {
+            window.checkAuth();
+        };
+
+    </script>
+</body>
+</html>
